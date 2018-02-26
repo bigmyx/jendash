@@ -16,7 +16,7 @@
     <tbody>
       {% for build in builds %}
       {% if build['actions'][2]['parameters'] %}
-      {% if builds[1]['actions'][2]['parameters'][0]['name'] == 'ENV_NAME' and colors[build['result']] %}
+      {% if build['actions'][2]['parameters'][0]['name'] == 'ENV_NAME' and colors[build['result']] %}
       <tr class="{{ colors[build['result']] }}">
         <td><span class="label label-{{ colors[build['result']] }}">{{ build['result'] }}</span></td>
         <td><mark><b>{{ build['actions'][2]['parameters'][0]['value'] }}</b></mark></td>
