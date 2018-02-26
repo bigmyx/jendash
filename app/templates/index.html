@@ -8,6 +8,7 @@
       <tr>
         <th>Status</th>
         <th>Env Name</th>
+        <th>Action</th>
         <th>Build</th>
         <th>Date</th>
       </tr>
@@ -18,7 +19,8 @@
       {% if builds[1]['actions'][2]['parameters'][0]['name'] == 'ENV_NAME' and colors[build['result']] %}
       <tr class="{{ colors[build['result']] }}">
         <td><span class="label label-{{ colors[build['result']] }}">{{ build['result'] }}</span></td>
-        <td>{{ build['actions'][2]['parameters'][0]['value'] }}</td>
+        <td><mark><b>{{ build['actions'][2]['parameters'][0]['value'] }}</b></mark></td>
+        <td><kbd>{{ build['actions'][2]['parameters'][7]['value'] }}</kbd></span></td>
         <td><a href="{{ build['url'] }}">{{ build['number'] }}</a></td>
         <td>{{ build['timestamp'] | ctime }}</td>
       </tr>
