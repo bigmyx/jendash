@@ -1,8 +1,7 @@
 # JenDash
----
 
-## Description
-Jenkins Build History for Humans
+
+> Jenkins Build History for Humans
 
 
 ## Install
