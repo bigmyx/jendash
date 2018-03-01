@@ -10,17 +10,19 @@
         <th>Env Name</th>
         <th>Action</th>
         <th>Build</th>
+        <th>Branch</th>
         <th>Date</th>
       </tr>
     </thead>
     <tbody>
       {% for build in builds %}
       {% if build['actions'][2]['parameters'] %}
-      {% if build['actions'][2]['parameters'][0]['name'] == 'ENV_NAME' and colors[build['result']] %}
+      {% if build['actions'][2]['parameters'][0]['name'] == 'ENV_NAME' and colors[build['result']] and build['actions'][2]['parameters'][2]['value'] == "build"%}
       <tr class="{{ colors[build['result']] }}">
         <td><span class="label label-{{ colors[build['result']] }}">{{ build['result'] }}</span></td>
         <td><mark><b>{{ build['actions'][2]['parameters'][0]['value'] }}</b></mark></td>
-        <td><kbd>{{ build['actions'][2]['parameters'][7]['value'] }}</kbd></span></td>
+        <td><kbd>{{ build['actions'][2]['parameters'][2]['value'] }}</kbd></span></td>
+        <td><kbd>{{ build['actions'][2]['parameters'][1]['value'] }}</kbd></span></td>
         <td><a href="{{ build['url'] }}">{{ build['number'] }}</a></td>
         <td>{{ build['timestamp'] | ctime }}</td>
       </tr>
