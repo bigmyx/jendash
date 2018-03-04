@@ -3,7 +3,7 @@
 {% set colors = {'SUCCESS': 'success', 'FAILURE': 'danger', 'ABORTED': 'warning'} %}
 {% block body %}
 <div class="container">
-  <table class="table">
+  <table class="table table-hover" cellspacing="0">
     <thead>
       <tr>
         <th>Status</th>
@@ -13,14 +13,13 @@
         <th>Build</th>
         <th>Date</th>
         <th>Author</th>
-        <th></th>
       </tr>
     </thead>
     <tbody>
       {% for build in builds %}
       {% if build['actions'][2]['parameters'] %}
       {% if build['actions'][2]['parameters'][0]['name'] == 'ENV_NAME' and colors[build['result']] and build['actions'][2]['parameters'][2]['value'] == "build"%}
-      <tr class="table-{{ colors[build['result']] }}">
+      <tr class="table-{{ colors[build['result']] }}" data-toggle="collapse" data-target="#error-{{ build['number'] }}">
         <td><span class="badge badge-{{ colors[build['result']] }}">{{ build['result'] }}</span></td>
         <td><mark><b>{{ build['actions'][2]['parameters'][0]['value'] }}</b></mark></td>
         <td><kbd>{{ build['actions'][2]['parameters'][2]['value'] }}</kbd></span></td>
@@ -28,23 +27,20 @@
         <td><a href="{{ build['url'] }}/console">{{ build['number'] }}</a></td>
         <td>{{ build['timestamp'] | ctime }}</td>
         <td>{{ metadata[build['number']]['author'] }}</td>
-        <td>
-            <a data-toggle="collapse" role="button" href="#error-{{ build['number'] }}" aria-expanded="false" aria-controls="error-{{ build['number'] }}">
-              {{ '>>>' if metadata[build['number']]['errors'] }}
-            </a>
+      </tr>
+      <tr>
+        <td colspan="7">
+          <div id="error-{{ build['number'] }}" class="collapse">
+            {% if metadata[build['number']]['errors'] %}
+            {% for line in metadata[build['number']]['errors'] %}
+            {{ line }}<br>
+            {% endfor %}
+            {% else %}
+            no errors
+            {% endif %}
+          </div>
         </td>
       </tr>
-      <div id="error-{{ build['number'] }}" class="collapse">
-        <div class="card card-body">
-          {% if metadata[build['number']]['errors'] %}
-          {% for line in metadata[build['number']]['errors'] %}
-          {{ line }}<br>
-          {% endfor %}
-          {% else %}
-          no errors
-          {% endif %}
-        </div>
-      </div>
       {% endif %}
       {% endif %}
       {% endfor %}
