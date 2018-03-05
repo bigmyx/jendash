@@ -1,8 +1,12 @@
 import time
+import re
 import requests
 from flask import render_template
 from app import app
-import re
+import requests_cache
+
+
+requests_cache.install_cache(cache_name='jendash_cache', backend='sqlite', expire_after=300)
 
 
 @app.template_filter('ctime')
