@@ -1,5 +1,5 @@
+# pylint: disable=R0914,C0301,R0101
 import time
-import re
 import requests
 from flask import render_template
 from app import app
@@ -22,9 +22,10 @@ def _get_builds_data():
 
     builds = j_data.json()['builds']
     metadata = {}
-    for build in builds:
+    for idx, build in enumerate(builds):
+        errors = []
         try:
-            if build['actions'][2]['parameters'][0]['name'] == 'ENV_NAME' and build['actions'][2]['parameters'][2]['value'] == "build":
+            if build['actions'][2]['parameters'][6]['name'] == 'ENV_NAME' and build['actions'][2]['parameters'][14]['value'] != "destroy":
                 metadata[build['number']] = {}
                 j_details = requests.get("{}/api/json".format(build['url']),
                                          auth=(app.config['JENKINS_USER'], app.config['JENKINS_PASS']))
@@ -33,29 +34,33 @@ def _get_builds_data():
                     j_console = requests.get("{}/consoleText".format(build['url']),
                                              auth=(app.config['JENKINS_USER'], app.config['JENKINS_PASS']))
                     app.logger.debug('Get Job Console Headers: %s\ntime: %d', j_console.headers, j_console.elapsed.total_seconds())
-                    subjob_re = 'Starting building:\s.*\s#\d+'
-                    subjob_id = re.search(subjob_re, j_console.text).group(0).split(' ')[3].strip('#')
-                    subjob_name = 'env-deploy-custom'
-                    subjob_err = requests.get("{}/job/{}/{}/consoleText".format(app.config['JENKINS_URL'],
-                                                                                subjob_name, subjob_id),
-                                              auth=(app.config['JENKINS_USER'], app.config['JENKINS_PASS']))
-                    app.logger.debug('Get Subjob Console Headers: %s\ntime: %d', subjob_err.headers, subjob_err.elapsed.total_seconds())
-                    lines = subjob_err.text.split('\n')
-                    errors = []
+                    lines = j_console.text.split('\n')
                     for num, line in enumerate(lines):
-                        if "Traceback" in line:
-                            errors = lines[num - 25:num]
+                        if "FAILURE" in line:
+                            errors = lines[num - 50:num]
 
-                    metadata[build['number']]['errors'] = errors
+                metadata[build['number']]['errors'] = errors
 
                 try:
-                    autor = j_details.json()['actions'][0]['causes'][0]['userName']
+                    author = j_details.json()['actions'][0]['causes'][0]['userName']
                 except KeyError:
-                    autor = j_details.json()['actions'][0]['causes'][0]['upstreamProject']
-                    autor = (autor[:20] + '..') if len(autor) > 20 else autor  # shorten author name
-                metadata[build['number']]['author'] = autor
-        except KeyError:
-            pass
+                    author = j_details.json()['actions'][0]['causes'][0]['upstreamProject']
+                    upstream_url = j_details.json()['actions'][0]['causes'][0]['upstreamUrl']
+                    upstream_build = j_details.json()['actions'][0]['causes'][0]['upstreamBuild']
+                    if 'regression' not in author:
+                        upstream_job = requests.get("{url}/{job}/{build}/api/json".format(url=app.config['JENKINS_URL'],
+                                                                                          job=upstream_url, build=upstream_build),
+                                                    auth=(app.config['JENKINS_USER'], app.config['JENKINS_PASS']))
+                        author = upstream_job.json()['actions'][1]['causes'][0]['userName']
+                    author = (author[:20] + '..') if len(author) > 20 else author  # shorten author name
+                metadata[build['number']]['author'] = author
+            else:
+                del builds[idx]
+                continue
+        except KeyError as e:
+            app.logger.error('build #%d, key error: %s', build['number'], e)
+            del builds[idx]
+            continue
     return metadata, builds
 
 

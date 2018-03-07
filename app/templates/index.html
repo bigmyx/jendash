@@ -17,12 +17,11 @@
     </thead>
     <tbody>
       {% for build in builds %}
-      {% if build['actions'][2]['parameters'] %}
-      {% if build['actions'][2]['parameters'][0]['name'] == 'ENV_NAME' and colors[build['result']] and build['actions'][2]['parameters'][2]['value'] == "build"%}
+      {% if build['number'] in metadata %}
       <tr class="table-{{ colors[build['result']] }}" data-toggle="collapse" data-target="#error-{{ build['number'] }}">
         <td><span class="badge badge-{{ colors[build['result']] }}">{{ build['result'] }}</span></td>
-        <td><mark><b>{{ build['actions'][2]['parameters'][0]['value'] }}</b></mark></td>
-        <td><kbd>{{ build['actions'][2]['parameters'][2]['value'] }}</kbd></span></td>
+        <td><mark><b>{{ build['actions'][2]['parameters'][6]['value'] }}</b></mark></td>
+        <td><kbd>{{ build['actions'][2]['parameters'][14]['value'] }}</kbd></span></td>
         <td><kbd>{{ build['actions'][2]['parameters'][1]['value'] }}</kbd></span></td>
         <td><a href="{{ build['url'] }}/console">{{ build['number'] }}</a></td>
         <td>{{ build['timestamp'] | ctime }}</td>
@@ -31,18 +30,13 @@
       <tr>
         <td colspan="7">
           <div id="error-{{ build['number'] }}" class="collapse">
-            {% if metadata[build['number']]['errors'] %}
             {% for line in metadata[build['number']]['errors'] %}
             {{ line }}<br>
             {% endfor %}
-            {% else %}
-            no errors
             {% endif %}
           </div>
         </td>
       </tr>
-      {% endif %}
-      {% endif %}
       {% endfor %}
     </tbody>
   </table>
